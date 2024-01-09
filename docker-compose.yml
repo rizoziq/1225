@@ -31,8 +31,8 @@ services:
       - "15672:15672"
       - "5672:5672"
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: root
     volumes:
       - ./rabbitmq/data:/var/lib/rabbitmq/mnesia
       - ./rabbitmq/logs:/var/log/rabbitmq
@@ -41,7 +41,7 @@ services:
   server:
     container_name: 1225-server
     build:
-      context: ./back/
+      context: ./demo/
     image: 1225-server
     restart: unless-stopped
     ports:
