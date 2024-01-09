@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.TicketMapper">
+
+    <select id="getTicketById" parameterType="java.lang.Integer" resultType="com.example.demo.Ticket">
+        select * from Ticket where id=#{id}
+    </select>
+    <select id="getTicketNum">
+        select count(id) from Ticket
+    </select>
+    <select id="getAllTickets" resultType="com.example.demo.Ticket">
+        select * from Ticket
+    </select>
+
+    <insert id="addTicket" parameterType="com.example.demo.Ticket">
+        insert into Ticket (id, name, num) values (#{id}, #{name}, #{num})
+    </insert>
+
+    <update id="updateTicket" parameterType="com.example.demo.Ticket">
+        update Ticket set name=#{name}, num=#{num} where id=#{id}
+    </update>
+
+    <delete id="deleteTicket" parameterType="java.lang.Integer">
+        delete from Ticket where id=#{id}
+    </delete>
+
+    <update id="sellTicket" parameterType="java.lang.Integer">
+        update Ticket set num = num - 1 where id=#{id} and num > 0
+    </update>
+
+    <update id="refundTicket" parameterType="java.lang.Integer">
+        update Ticket set num = num + 1 where id=#{id}
+    </update>
+</mapper>
