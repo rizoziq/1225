@@ -1,0 +1,87 @@
+version: "3.4"
+
+services:
+  mysql:
+    container_name: 1225-mysql
+    image: mysql:8
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: aaa
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - mysql:/var/lib/mysql/
+      - ./sql/ticket.sql:/docker-entrypoint-initdb.d/ticket.sql:ro
+  
+  redis:
+    container_name: 1225-redis
+    image: redis:6-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+  rabbitmq:
+    container_name: 1225-rabbitmq
+    image: rabbitmq:3.8.9-management-alpine
+    restart: unless-stopped
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq/mnesia
+      - ./rabbitmq/logs:/var/log/rabbitmq
+      - ./rabbitmq/config:/etc/rabbitmq
+
+  server:
+    container_name: 1225-server
+    build:
+      context: ./back/
+    image: 1225-server
+    restart: unless-stopped
+    ports:
+      - "28080:28080"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      JAVA_OPTS:
+        ${JAVA_OPTS:-
+          -Xms512m
+          -Xmx512m
+          -Djava.security.egd=file:/dev/./urandom
+        }
+      ARGS:
+        --spring.datasource.url=${DATASOURCE_URL:-jdbc:mysql://1225-mysql:3306/aaa?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true}
+        --spring.datasource.username=root
+        --spring.datasource.password=password
+        --spring.redis.host=${REDIS_HOST:-1225-redis}
+    depends_on:
+      - mysql
+      - redis
+
+  web:
+    container_name: 1225-web
+    build:
+      context: ./web
+      args:
+        NODE_ENV:
+          ENV=${NODE_ENV:-production}
+          VUE_APP_TITLE=${VUE_APP_TITLE:-MYADMIN管理系统}
+    image: 1225-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+
+volumes:
+  mysql:
+    driver: local
+  redis:
+    driver: local
+  rabbitmq:
+    driver: local
